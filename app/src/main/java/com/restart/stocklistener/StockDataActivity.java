@@ -4,12 +4,16 @@ import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+
+import com.victor.loading.rotate.RotateLoading;
 
 
 public class StockDataActivity extends ActionBarActivity {
     private String company;
+    private RotateLoading rotateLoading;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -22,6 +26,8 @@ public class StockDataActivity extends ActionBarActivity {
         }
 
         final WebView webView = (WebView) findViewById(R.id.webView);
+        webView.setVisibility(View.INVISIBLE);
+        //rotateLoading.
         webView.getSettings().setJavaScriptEnabled(true);
         webView.setWebViewClient(new WebViewController() {
             @Override
@@ -30,11 +36,12 @@ public class StockDataActivity extends ActionBarActivity {
                 /* Removes div elements from the webView
                 *  1. News article at the bottom
                 *  2. A search bar at the top
-                *  3. The top drawer. (LEAVE A WHITE SPACE)
+                *  3. The top drawer. (LEAVES A WHITE SPACE)
                 *  */
                 webView.loadUrl("javascript:document.getElementById(\"td-applet-mw-quote-news\").setAttribute(\"style\",\"display:none;\");");
                 webView.loadUrl("javascript:document.getElementById(\"mediaquotessearchgs_2_container\").setAttribute(\"style\",\"display:none;\");");
                 webView.loadUrl("javascript:document.getElementsByClassName('ct-box-hd yui-sv-hd')[0].setAttribute(\"style\",\"display:none;\");");
+                webView.setVisibility(View.VISIBLE);
             }
         });
 
