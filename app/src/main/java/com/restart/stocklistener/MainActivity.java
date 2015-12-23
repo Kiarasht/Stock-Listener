@@ -65,8 +65,12 @@ public class MainActivity extends AppCompatActivity
                     public void run() {
                         AlertDialog.Builder alert = new AlertDialog.Builder(MainActivity.this);
                         alert.setTitle("New Stock");
-                        alert.setMessage("Input the stock you wish to add.\nEx: aapl, amzn, etc...");
+                        alert.setIcon(R.drawable.ic_launch);
                         final EditText input = new EditText(context);
+                        input.setTextColor(Color.BLACK);
+                        input.setPadding(80,40,40,40);
+                        input.setHint("ex: aapl, amzn, goog, etc...");
+                        input.setHintTextColor(Color.GRAY);
                         alert.setView(input);
 
                         alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
@@ -78,6 +82,7 @@ public class MainActivity extends AppCompatActivity
                                     String value = input.getText().toString();
                                     final int currenti = buttons;
                                     button[currenti] = new Button(context);
+                                    button[currenti].setBackgroundResource(R.drawable.button_custom);
                                     final String load = "Loading...";
                                     button[currenti].setText(load);
                                     ll.addView(button[currenti]);
