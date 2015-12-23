@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.view.Gravity;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Button;
@@ -82,9 +83,15 @@ public class MainActivity extends AppCompatActivity
                                     String value = input.getText().toString();
                                     final int currenti = buttons;
                                     button[currenti] = new Button(context);
-                                    button[currenti].setBackgroundResource(R.drawable.button_custom);
                                     final String load = "Loading...";
                                     button[currenti].setText(load);
+                                    LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                                            LinearLayout.LayoutParams.WRAP_CONTENT,
+                                            LinearLayout.LayoutParams.WRAP_CONTENT
+                                    );
+                                    params.setMargins(0, 0, 0, 20);
+                                    params.gravity = Gravity.CENTER;
+                                    button[currenti].setLayoutParams(params);
                                     ll.addView(button[currenti]);
                                     parseJSON(value, currenti);
                                     ++buttons;
@@ -230,9 +237,11 @@ public class MainActivity extends AppCompatActivity
                         public void run() {
                             button[buttonvalue].setText(result);
                             if (updown) {
-                                button[buttonvalue].setTextColor(Color.RED);
+                                button[buttonvalue].setTextColor(getResources().getColor(R.color.red));
+                                button[buttonvalue].setBackgroundResource(R.drawable.button_custom_bearish);
                             } else {
                                 button[buttonvalue].setTextColor(Color.GREEN);
+                                button[buttonvalue].setBackgroundResource(R.drawable.button_custom_bullish);
                             }
 
                             button[buttonvalue].setOnClickListener(new View.OnClickListener() {
