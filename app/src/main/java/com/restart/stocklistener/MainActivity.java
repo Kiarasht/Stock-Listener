@@ -5,9 +5,11 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Gravity;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -24,6 +26,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import com.victor.loading.rotate.RotateLoading;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -37,9 +41,14 @@ public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
     private final String TAG = "com.restart.stocklisten";
+    private SharedPreferences sharedPref;
+    private SharedPreferences.Editor editor;
+    private RotateLoading rotateLoading;
+    private String listCompany = "";
     private Context context;
     private Button[] button = new Button[100];
     private int buttons = 0;
+    private boolean reset;
 
     /**
      * Create and assign widgets to ones in the layout
@@ -50,9 +59,16 @@ public class MainActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        sharedPref = getSharedPreferences(TAG, MODE_PRIVATE);
+        listCompany = sharedPref.getString(getString(R.string.listCompany), "");
+        Log.wtf(TAG, "Here is the listCompany = " + listCompany + " and its length = " + listCompany.length());
+
         context = getApplicationContext();
+        rotateLoading = (RotateLoading) findViewById(R.id.rotateloading);
 
         final LinearLayout ll = (LinearLayout) findViewById(R.id.Linear_view);
         ll.setOrientation(LinearLayout.VERTICAL);
@@ -93,7 +109,7 @@ public class MainActivity extends AppCompatActivity
                                     params.gravity = Gravity.CENTER;
                                     button[currenti].setLayoutParams(params);
                                     ll.addView(button[currenti]);
-                                    parseJSON(value, currenti);
+                                    parseJSON(value, currenti, false);
                                     ++buttons;
                                 }
                             }
@@ -117,6 +133,33 @@ public class MainActivity extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+
+        if (listCompany.length() != 0) {
+            rotateLoading.start();
+            reset(ll);
+        }
+        if (rotateLoading.isStart()) {
+            rotateLoading.stop();
+        }
+    }
+
+    private void reset(LinearLayout ll) {
+        String[] companyArray = listCompany.split(",");
+
+        for (int i = 0; i < companyArray.length; ++i) {
+            button[i] = new Button(context);
+            final String load = "Loading...";
+            button[i].setText(load);
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+            );
+            params.setMargins(0, 0, 0, 20);
+            params.gravity = Gravity.CENTER;
+            button[i].setLayoutParams(params);
+            ll.addView(button[i]);
+            parseJSON(companyArray[i], i, true);
+        }
     }
 
     @Override
@@ -169,7 +212,7 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
 
-    private void parseJSON(final String company, final int buttonvalue) {
+    private void parseJSON(final String company, final int buttonvalue, final boolean reset) {
         AsyncTask.execute(new Runnable() {
             public void run() {
                 String strContent = "";
@@ -236,6 +279,11 @@ public class MainActivity extends AppCompatActivity
                         @Override
                         public void run() {
                             button[buttonvalue].setText(result);
+                            if (!reset) {
+                                listCompany += symbol + ",";
+                                sharedPref.edit().putString(getString(R.string.listCompany), listCompany).apply();
+                            }
+
                             if (updown) {
                                 button[buttonvalue].setTextColor(getResources().getColor(R.color.red));
                                 button[buttonvalue].setBackgroundResource(R.drawable.button_custom_bearish);
@@ -259,7 +307,7 @@ public class MainActivity extends AppCompatActivity
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            Toast.makeText(context, "Are you connected to internet?",
+                            Toast.makeText(context, "Spaces? Or are you connected to internet?",
                                     Toast.LENGTH_LONG).show();
                             button[buttonvalue].setVisibility(View.GONE);
                         }

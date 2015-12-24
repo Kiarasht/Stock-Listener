@@ -8,4 +8,5 @@
     <string name="title_activity_stock_data">Stock Data</string>
 
     <string name="hello_world">Hello world!</string>
+    <string name="listCompany">listCompany</string>
 </resources>
