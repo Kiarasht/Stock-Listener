@@ -8,12 +8,9 @@ import android.view.View;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
-import com.victor.loading.rotate.RotateLoading;
-
 
 public class StockDataActivity extends ActionBarActivity {
     private String company;
-    private RotateLoading rotateLoading;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

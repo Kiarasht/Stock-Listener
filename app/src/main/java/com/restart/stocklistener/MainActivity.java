@@ -11,6 +11,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.Window;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Button;
@@ -24,9 +25,9 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
-import com.victor.loading.rotate.RotateLoading;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -43,7 +44,7 @@ public class MainActivity extends AppCompatActivity
     private final String TAG = "com.restart.stocklisten";
     private SharedPreferences sharedPref;
     private SharedPreferences.Editor editor;
-    private RotateLoading rotateLoading;
+    private ProgressBar progressBar;
     private String listCompany = "";
     private Context context;
     private Button[] button = new Button[100];
@@ -63,12 +64,12 @@ public class MainActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        progressBar = (ProgressBar) findViewById(R.id.progressbar);
         sharedPref = getSharedPreferences(TAG, MODE_PRIVATE);
         listCompany = sharedPref.getString(getString(R.string.listCompany), "");
         Log.wtf(TAG, "Here is the listCompany = " + listCompany + " and its length = " + listCompany.length());
 
         context = getApplicationContext();
-        rotateLoading = (RotateLoading) findViewById(R.id.rotateloading);
 
         final LinearLayout ll = (LinearLayout) findViewById(R.id.Linear_view);
         ll.setOrientation(LinearLayout.VERTICAL);
@@ -85,7 +86,7 @@ public class MainActivity extends AppCompatActivity
                         alert.setIcon(R.drawable.ic_launch);
                         final EditText input = new EditText(context);
                         input.setTextColor(Color.BLACK);
-                        input.setPadding(80,40,40,40);
+                        input.setPadding(80, 40, 40, 40);
                         input.setHint("ex: aapl, amzn, goog, etc...");
                         input.setHintTextColor(Color.GRAY);
                         alert.setView(input);
@@ -135,16 +136,15 @@ public class MainActivity extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(this);
 
         if (listCompany.length() != 0) {
-            rotateLoading.start();
             reset(ll);
-        }
-        if (rotateLoading.isStart()) {
-            rotateLoading.stop();
         }
     }
 
     private void reset(LinearLayout ll) {
         String[] companyArray = listCompany.split(",");
+        int length = companyArray.length;
+        progressBar.setProgress(0);
+        progressBar.setVisibility(View.VISIBLE);
 
         for (int i = 0; i < companyArray.length; ++i) {
             button[i] = new Button(context);
@@ -159,7 +159,9 @@ public class MainActivity extends AppCompatActivity
             button[i].setLayoutParams(params);
             ll.addView(button[i]);
             parseJSON(companyArray[i], i, true);
+            progressBar.setProgress((i / length) * 100);
         }
+        //progressBar.setVisibility(View.GONE);
     }
 
     @Override
