@@ -11,21 +11,16 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Gravity;
-import android.view.Window;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Button;
 import android.support.design.widget.FloatingActionButton;
 import android.view.View;
-import android.support.design.widget.NavigationView;
-import android.support.v4.view.GravityCompat;
-import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.widget.ProgressBar;
 import android.widget.Toast;
 
 
@@ -38,18 +33,14 @@ import java.net.URLConnection;
 import java.text.DecimalFormat;
 
 
-public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener {
+public class MainActivity extends AppCompatActivity {
 
     private final String TAG = "com.restart.stocklisten";
     private SharedPreferences sharedPref;
-    private SharedPreferences.Editor editor;
-    private ProgressBar progressBar;
     private String listCompany = "";
     private Context context;
     private Button[] button = new Button[100];
     private int buttons = 0;
-    private boolean reset;
 
     /**
      * Create and assign widgets to ones in the layout
@@ -64,10 +55,9 @@ public class MainActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        progressBar = (ProgressBar) findViewById(R.id.progressbar);
         sharedPref = getSharedPreferences(TAG, MODE_PRIVATE);
         listCompany = sharedPref.getString(getString(R.string.listCompany), "");
-        Log.wtf(TAG, "Here is the listCompany = " + listCompany + " and its length = " + listCompany.length());
+
 
         context = getApplicationContext();
 
@@ -126,27 +116,41 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawer.setDrawerListener(toggle);
-        toggle.syncState();
-
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(this);
-
         if (listCompany.length() != 0) {
-            reset(ll);
+            Thread worker = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    reset(ll);
+                }
+            });
+            worker.start();
         }
     }
 
-    private void reset(LinearLayout ll) {
+    private void refresh() {
+        if (listCompany.length() != 0) {
+            Thread worker = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    String[] companyArray = listCompany.split(",");
+                    int length = companyArray.length;
+
+                    for (int i = 0; i < length; ++i) {
+                        parseJSON(companyArray[i], i, true);
+                    }
+                }
+            });
+            worker.start();
+        }
+    }
+
+    private void reset(final LinearLayout ll) {
         String[] companyArray = listCompany.split(",");
         int length = companyArray.length;
-        progressBar.setProgress(0);
-        progressBar.setVisibility(View.VISIBLE);
 
-        for (int i = 0; i < companyArray.length; ++i) {
+        Log.wtf(TAG, "Here is the listCompany = " + listCompany + " and its length = " + length);
+
+        for (int i = 0; i < length; ++i) {
             button[i] = new Button(context);
             final String load = "Loading...";
             button[i].setText(load);
@@ -157,61 +161,16 @@ public class MainActivity extends AppCompatActivity
             params.setMargins(0, 0, 0, 20);
             params.gravity = Gravity.CENTER;
             button[i].setLayoutParams(params);
-            ll.addView(button[i]);
+            final int fi = i;
+
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    ll.addView(button[fi]);
+                }
+            });
             parseJSON(companyArray[i], i, true);
-            progressBar.setProgress((i / length) * 100);
         }
-        //progressBar.setVisibility(View.GONE);
-    }
-
-    @Override
-    public void onBackPressed() {
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        if (drawer.isDrawerOpen(GravityCompat.START)) {
-            drawer.closeDrawer(GravityCompat.START);
-        } else {
-            super.onBackPressed();
-        }
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    public boolean onNavigationItemSelected(MenuItem item) {
-        int id = item.getItemId();
-
-        if (id == R.id.nav_camera) {
-
-        } else if (id == R.id.nav_gallery) {
-
-        } else if (id == R.id.nav_slideshow) {
-
-        } else if (id == R.id.nav_manage) {
-
-        } else if (id == R.id.nav_share) {
-
-        } else if (id == R.id.nav_send) {
-
-        }
-
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        drawer.closeDrawer(GravityCompat.START);
-        return true;
     }
 
     private void parseJSON(final String company, final int buttonvalue, final boolean reset) {
@@ -328,5 +287,26 @@ public class MainActivity extends AppCompatActivity
                 }
             }
         });
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_settings:
+                return true;
+            case R.id.refresh:
+                refresh();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        getMenuInflater().inflate(R.menu.main, menu);
+        inflater.inflate(R.menu.refresh, menu);
+        return true;
     }
 }
