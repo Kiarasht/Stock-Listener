@@ -43,7 +43,8 @@ public class MainActivity extends AppCompatActivity {
     private int buttons = 0;
 
     /**
-     * Create and assign widgets to ones in the layout
+     * Create and assign widgets to ones in the layout.
+     * Start the onclicklistener for the action button
      *
      * @param savedInstanceState on create method
      */
@@ -116,6 +117,10 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        /**
+         * If we have just created our view, but listCompany holds values, then we need to
+         * set them up. We will do this process in a new thread.
+         */
         if (listCompany.length() != 0) {
             Thread worker = new Thread(new Runnable() {
                 @Override
@@ -127,23 +132,12 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void refresh() {
-        if (listCompany.length() != 0) {
-            Thread worker = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    String[] companyArray = listCompany.split(",");
-                    int length = companyArray.length;
-
-                    for (int i = 0; i < length; ++i) {
-                        parseJSON(companyArray[i], i, true);
-                    }
-                }
-            });
-            worker.start();
-        }
-    }
-
+    /**
+     * Method gets called when user has opened the MainActivity and companyList contains values.
+     * We will need to set up user's previous watchlist.
+     *
+     * @param ll The LinearLayout set up in the onCreate
+     */
     private void reset(final LinearLayout ll) {
         String[] companyArray = listCompany.split(",");
         int length = companyArray.length;
@@ -173,6 +167,14 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Uses API from Yahoo Finance to get stock information such as a companies value and it
+     * recent change.
+     *
+     * @param company     A string given by the user or other methods to add or update the stock
+     * @param buttonvalue A int that represents which button in the button array need to be changed
+     * @param reset       Are we adding anything to listCompany or just updating the current list?
+     */
     private void parseJSON(final String company, final int buttonvalue, final boolean reset) {
         AsyncTask.execute(new Runnable() {
             public void run() {
@@ -221,7 +223,7 @@ public class MainActivity extends AppCompatActivity {
                     DecimalFormat decimalFormat = new DecimalFormat("0.00");
                     final String symbol = results.getString("symbol");
                     String bid = "$" + decimalFormat.format(Float.parseFloat(results.getString("Bid")));
-                    String change = decimalFormat.format(Float.parseFloat(results.getString("Change")));
+                    String change = results.getString("PercentChange");
                     String finalchange;
                     final Boolean updown;
 
@@ -289,6 +291,9 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Creates the settings drop down menu and refresh button
+     */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
@@ -302,6 +307,9 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Creates the hamburger menu which only holds settings.
+     */
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
@@ -309,4 +317,26 @@ public class MainActivity extends AppCompatActivity {
         inflater.inflate(R.menu.refresh, menu);
         return true;
     }
+
+    /**
+     * refresh will get called when the user has clicked the refresh button in the
+     * action bar. It will go through the watch list updating its values.
+     */
+    private void refresh() {
+        if (listCompany.length() != 0) {
+            Thread worker = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    String[] companyArray = listCompany.split(",");
+                    int length = companyArray.length;
+
+                    for (int i = 0; i < length; ++i) {
+                        parseJSON(companyArray[i], i, true);
+                    }
+                }
+            });
+            worker.start();
+        }
+    }
+
 }
