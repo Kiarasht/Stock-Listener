@@ -11,9 +11,12 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Button;
@@ -21,6 +24,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.view.View;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.widget.ListView;
 import android.widget.Toast;
 
 
@@ -298,6 +302,7 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_settings:
+                sort();
                 return true;
             case R.id.refresh:
                 refresh();
@@ -318,9 +323,55 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
+    private void sort() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                String names[] ={"Symbol (A-Z)","Price ($)","Change (%)"};
+                AlertDialog.Builder alertDialog = new AlertDialog.Builder(MainActivity.this);
+                AlertDialog alert = alertDialog.create();
+                alert.setIcon(R.drawable.ic_launch);
+
+                LayoutInflater inflater = getLayoutInflater();
+                View convertView = inflater.inflate(R.layout.list, null);
+                alert.setView(convertView);
+                alert.setTitle("List");
+                ListView listView = (ListView) convertView.findViewById(R.id.listView1);
+
+                listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(AdapterView<?> parent, View view,
+                                            int position, long id) {
+                        Log.i(TAG, "On the listView position clicked is = " + position);
+                        SortManager sortManager = new SortManager(button);
+                        switch (position) {
+                            case 0:
+                                button = sortManager.Sortsymbol();
+                                break;
+                            case 1:
+                                button = sortManager.Sortprice();
+                                break;
+                            case 2:
+                                button = sortManager.Sortchange();
+                                break;
+                            default:
+                                refresh();
+                        }
+                    }
+                });
+
+                listView.setPadding(80, 40, 40, 40);
+                ArrayAdapter<String> adapter = new ArrayAdapter<>(MainActivity.this,android.R.layout.simple_list_item_1,names);
+                listView.setAdapter(adapter);
+                alert.show();
+            }
+        });
+    }
+
     /**
      * refresh will get called when the user has clicked the refresh button in the
      * action bar. It will go through the watch list updating its values.
+     * Method can also be called if user requested a resorting of the watchlist.
      */
     private void refresh() {
         if (listCompany.length() != 0) {

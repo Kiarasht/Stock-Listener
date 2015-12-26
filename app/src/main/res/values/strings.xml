@@ -4,9 +4,14 @@
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
 
-    <string name="action_settings">Settings</string>
+    <string name="action_settings">Sort by </string>
     <string name="title_activity_stock_data">Stock Data</string>
 
     <string name="hello_world">Hello world!</string>
     <string name="listCompany">listCompany</string>
+
+    <string name="symbol">symbol</string>
+    <string name="price">price</string>
+    <string name="change">change</string>
+    <string name="settings">Setting</string>
 </resources>
