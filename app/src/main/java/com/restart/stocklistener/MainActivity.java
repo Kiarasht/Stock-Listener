@@ -168,6 +168,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
             parseJSON(companyArray[i], i, true);
+            ++buttons;
         }
     }
 
@@ -343,10 +344,18 @@ public class MainActivity extends AppCompatActivity {
                     public void onItemClick(AdapterView<?> parent, View view,
                                             int position, long id) {
                         Log.i(TAG, "On the listView position clicked is = " + position);
-                        SortManager sortManager = new SortManager(button);
+                        SortManager sortManager = new SortManager(button, buttons);
                         switch (position) {
                             case 0:
+                                for (int i = 0; i < 6; ++i) {
+                                    Log.d(TAG, button[i].getText().toString());
+                                    Log.d(TAG, "\n");
+                                }
                                 button = sortManager.Sortsymbol();
+                                for (int i = 0; i < 6; ++i) {
+                                    Log.d(TAG, "\n");
+                                    Log.d(TAG, button[i].getText().toString());
+                                }
                                 break;
                             case 1:
                                 button = sortManager.Sortprice();

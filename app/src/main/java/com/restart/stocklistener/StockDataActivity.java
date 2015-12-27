@@ -6,12 +6,13 @@ import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
 
 public class StockDataActivity extends AppCompatActivity {
+
+    private final String TAG = "com.restart.stocklisten";
     private SwipeRefreshLayout swipeLayout;
     private String company;
 
@@ -27,7 +28,6 @@ public class StockDataActivity extends AppCompatActivity {
         }
 
         final WebView webView = (WebView) findViewById(R.id.webView);
-        //webView.setVisibility(View.INVISIBLE);
         webView.getSettings().setJavaScriptEnabled(true);
 
         swipeLayout = (SwipeRefreshLayout) findViewById(R.id.swipe_container);
