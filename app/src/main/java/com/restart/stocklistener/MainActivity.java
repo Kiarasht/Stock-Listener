@@ -39,7 +39,7 @@ import java.text.DecimalFormat;
 
 public class MainActivity extends AppCompatActivity {
 
-    private final String TAG = "com.restart.stocklisten";
+    final String TAG = "com.restart.stocklisten";
     private SharedPreferences sharedPref;
     private String listCompany = "";
     private Context context;
@@ -63,8 +63,7 @@ public class MainActivity extends AppCompatActivity {
         sharedPref = getSharedPreferences(TAG, MODE_PRIVATE);
         listCompany = sharedPref.getString(getString(R.string.listCompany), "");
 
-
-        context = getApplicationContext();
+        context = this;
 
         final LinearLayout ll = (LinearLayout) findViewById(R.id.Linear_view);
         ll.setOrientation(LinearLayout.VERTICAL);
@@ -82,7 +81,7 @@ public class MainActivity extends AppCompatActivity {
                         final EditText input = new EditText(context);
                         input.setTextColor(Color.BLACK);
                         input.setPadding(80, 40, 40, 40);
-                        input.setHint("ex: aapl, amzn, goog, etc...");
+                        input.setHint("EX: AAPL, AMZN, GOOG, ...");
                         input.setHintTextColor(Color.GRAY);
                         alert.setView(input);
 
@@ -126,13 +125,7 @@ public class MainActivity extends AppCompatActivity {
          * set them up. We will do this process in a new thread.
          */
         if (listCompany.length() != 0) {
-            Thread worker = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    reset(ll);
-                }
-            });
-            worker.start();
+            reset(ll);
         }
     }
 
@@ -145,8 +138,6 @@ public class MainActivity extends AppCompatActivity {
     private void reset(final LinearLayout ll) {
         String[] companyArray = listCompany.split(",");
         int length = companyArray.length;
-
-        Log.wtf(TAG, "Here is the listCompany = " + listCompany + " and its length = " + length);
 
         for (int i = 0; i < length; ++i) {
             button[i] = new Button(context);
@@ -179,6 +170,7 @@ public class MainActivity extends AppCompatActivity {
      * @param company     A string given by the user or other methods to add or update the stock
      * @param buttonvalue A int that represents which button in the button array need to be changed
      * @param reset       Are we adding anything to listCompany or just updating the current list?
+     *                    If true we are updating, if false we are adding to the list
      */
     private void parseJSON(final String company, final int buttonvalue, final boolean reset) {
         AsyncTask.execute(new Runnable() {
@@ -253,7 +245,7 @@ public class MainActivity extends AppCompatActivity {
                             }
 
                             if (updown) {
-                                button[buttonvalue].setTextColor(getResources().getColor(R.color.red));
+                                button[buttonvalue].setTextColor(Color.RED);
                                 button[buttonvalue].setBackgroundResource(R.drawable.button_custom_bearish);
                             } else {
                                 button[buttonvalue].setTextColor(Color.GREEN);
@@ -328,7 +320,7 @@ public class MainActivity extends AppCompatActivity {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                String names[] ={"Symbol (A-Z)","Price ($)","Change (%)"};
+                String names[] = {"Symbol (A-Z)", "Price ($)", "Change (%)"};
                 AlertDialog.Builder alertDialog = new AlertDialog.Builder(MainActivity.this);
                 AlertDialog alert = alertDialog.create();
                 alert.setIcon(R.drawable.ic_launch);
@@ -347,13 +339,14 @@ public class MainActivity extends AppCompatActivity {
                         SortManager sortManager = new SortManager(button, buttons);
                         switch (position) {
                             case 0:
-                                for (int i = 0; i < 6; ++i) {
+                                for (int i = 0; i < buttons; ++i) {
                                     Log.d(TAG, button[i].getText().toString());
-                                    Log.d(TAG, "\n");
                                 }
+                                Log.d(TAG, "New Line");
                                 button = sortManager.Sortsymbol();
-                                for (int i = 0; i < 6; ++i) {
-                                    Log.d(TAG, "\n");
+                                refresh(button, buttons);
+                                Log.d(TAG, "New Line");
+                                for (int i = 0; i < buttons; ++i) {
                                     Log.d(TAG, button[i].getText().toString());
                                 }
                                 break;
@@ -370,7 +363,7 @@ public class MainActivity extends AppCompatActivity {
                 });
 
                 listView.setPadding(80, 40, 40, 40);
-                ArrayAdapter<String> adapter = new ArrayAdapter<>(MainActivity.this,android.R.layout.simple_list_item_1,names);
+                ArrayAdapter<String> adapter = new ArrayAdapter<>(MainActivity.this, android.R.layout.simple_list_item_1, names);
                 listView.setAdapter(adapter);
                 alert.show();
             }
@@ -384,19 +377,24 @@ public class MainActivity extends AppCompatActivity {
      */
     private void refresh() {
         if (listCompany.length() != 0) {
-            Thread worker = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    String[] companyArray = listCompany.split(",");
-                    int length = companyArray.length;
+            String[] companyArray = listCompany.split(",");
+            int length = companyArray.length;
 
-                    for (int i = 0; i < length; ++i) {
-                        parseJSON(companyArray[i], i, true);
-                    }
-                }
-            });
-            worker.start();
+            for (int i = 0; i < length; ++i) {
+                parseJSON(companyArray[i], i, true);
+            }
         }
+    }
+    
+    private void refresh(final Button[] button, int length) {
+        listCompany = null;
+        for (int i = 0; i < length; ++i) {
+            String text = button[i].getText().toString();
+            String[] array = text.split("   ");
+            String result = array[0];
+            listCompany += result + ",";
+        }
+        refresh();
     }
 
 }

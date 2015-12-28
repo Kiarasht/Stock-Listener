@@ -1,7 +1,6 @@
 package com.restart.stocklistener;
 
 
-import android.util.Log;
 import android.widget.Button;
 
 public class SortManager {
@@ -30,18 +29,20 @@ public class SortManager {
         return button;
     }
 
+    /**
+     * The main function where the Insertionsort algorithm is defined. Insertion implementation
+     * find a number and moves it back until it finds its perfect place
+     */
     public void sort() {
-        final String button12 = button[0].getText().toString();
-        final String[] companyArray12 = button12.split("   ");
-        final String final1 = companyArray12[0];
-        final String button21 = button[1].getText().toString();
-        final String[] companyArray21 = button21.split("   ");
-        final String final2 = companyArray21[0];
-        if (final1.compareTo(final2) < 0) {
-            Log.d(TAG, "Set!");
-            Button temp = button[0];
-            button[0] = button[1];
-            button[1] = temp;
+        for (int i = 1; i <= buttons - 1; ++i) {
+            Button x = button[i];
+            int j = i;
+
+            while (j > 0 && button[j - 1].getText().toString().compareTo(x.getText().toString()) > 0) {
+                button[j] = button[j - 1];
+                j = j - 1;
+            }
+            button[j] = x;
         }
     }
 }
