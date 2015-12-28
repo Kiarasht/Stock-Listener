@@ -40,6 +40,7 @@ import java.text.DecimalFormat;
 public class MainActivity extends AppCompatActivity {
 
     final String TAG = "com.restart.stocklisten";
+    private LinearLayout linearLayout;
     private SharedPreferences sharedPref;
     private String listCompany = "";
     private Context context;
@@ -125,8 +126,9 @@ public class MainActivity extends AppCompatActivity {
          * set them up. We will do this process in a new thread.
          */
         if (listCompany.length() != 0) {
-            reset(ll);
+            reset(ll, false);
         }
+        linearLayout = ll;
     }
 
     /**
@@ -135,9 +137,15 @@ public class MainActivity extends AppCompatActivity {
      *
      * @param ll The LinearLayout set up in the onCreate
      */
-    private void reset(final LinearLayout ll) {
+    private void reset(final LinearLayout ll, Boolean refresh) {
         String[] companyArray = listCompany.split(",");
         int length = companyArray.length;
+
+        if (refresh) {
+            for (int i = 0; i < length; ++i) {
+                button[i].setVisibility(View.GONE);
+            }
+        }
 
         for (int i = 0; i < length; ++i) {
             button[i] = new Button(context);
@@ -322,7 +330,7 @@ public class MainActivity extends AppCompatActivity {
             public void run() {
                 String names[] = {"Symbol (A-Z)", "Price ($)", "Change (%)"};
                 AlertDialog.Builder alertDialog = new AlertDialog.Builder(MainActivity.this);
-                AlertDialog alert = alertDialog.create();
+                final AlertDialog alert = alertDialog.create();
                 alert.setIcon(R.drawable.ic_launch);
 
                 LayoutInflater inflater = getLayoutInflater();
@@ -335,20 +343,12 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onItemClick(AdapterView<?> parent, View view,
                                             int position, long id) {
-                        Log.i(TAG, "On the listView position clicked is = " + position);
                         SortManager sortManager = new SortManager(button, buttons);
                         switch (position) {
                             case 0:
-                                for (int i = 0; i < buttons; ++i) {
-                                    Log.d(TAG, button[i].getText().toString());
-                                }
-                                Log.d(TAG, "New Line");
                                 button = sortManager.Sortsymbol();
                                 refresh(button, buttons);
-                                Log.d(TAG, "New Line");
-                                for (int i = 0; i < buttons; ++i) {
-                                    Log.d(TAG, button[i].getText().toString());
-                                }
+                                alert.dismiss();
                                 break;
                             case 1:
                                 button = sortManager.Sortprice();
@@ -356,8 +356,6 @@ public class MainActivity extends AppCompatActivity {
                             case 2:
                                 button = sortManager.Sortchange();
                                 break;
-                            default:
-                                refresh();
                         }
                     }
                 });
@@ -385,16 +383,19 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
-    
+
     private void refresh(final Button[] button, int length) {
-        listCompany = null;
+        listCompany = "";
         for (int i = 0; i < length; ++i) {
             String text = button[i].getText().toString();
             String[] array = text.split("   ");
             String result = array[0];
             listCompany += result + ",";
         }
-        refresh();
+        reset(getLinearLayout(), true);
     }
 
+    public LinearLayout getLinearLayout() {
+        return linearLayout;
+    }
 }
