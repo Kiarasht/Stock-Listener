@@ -144,6 +144,7 @@ public class MainActivity extends AppCompatActivity {
         if (refresh) {
             for (int i = 0; i < length; ++i) {
                 button[i].setVisibility(View.GONE);
+                buttons = 0;
             }
         }
 
@@ -278,6 +279,7 @@ public class MainActivity extends AppCompatActivity {
                             Toast.makeText(context, "Spaces? Or are you connected to internet?",
                                     Toast.LENGTH_LONG).show();
                             button[buttonvalue].setVisibility(View.GONE);
+                            --buttons;
                         }
                     });
 
@@ -288,6 +290,7 @@ public class MainActivity extends AppCompatActivity {
                             Toast.makeText(context, "Correct company abbreviation?",
                                     Toast.LENGTH_LONG).show();
                             button[buttonvalue].setVisibility(View.GONE);
+                            --buttons;
                         }
                     });
 
@@ -306,7 +309,7 @@ public class MainActivity extends AppCompatActivity {
                 sort();
                 return true;
             case R.id.refresh:
-                refresh();
+                reset(getLinearLayout(), true);
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -347,7 +350,7 @@ public class MainActivity extends AppCompatActivity {
                         switch (position) {
                             case 0:
                                 button = sortManager.Sortsymbol();
-                                refresh(button, buttons);
+                                refresh_listCompany(button, buttons);
                                 alert.dismiss();
                                 break;
                             case 1:
@@ -368,23 +371,7 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    /**
-     * refresh will get called when the user has clicked the refresh button in the
-     * action bar. It will go through the watch list updating its values.
-     * Method can also be called if user requested a resorting of the watchlist.
-     */
-    private void refresh() {
-        if (listCompany.length() != 0) {
-            String[] companyArray = listCompany.split(",");
-            int length = companyArray.length;
-
-            for (int i = 0; i < length; ++i) {
-                parseJSON(companyArray[i], i, true);
-            }
-        }
-    }
-
-    private void refresh(final Button[] button, int length) {
+    private void refresh_listCompany(final Button[] button, int length) {
         listCompany = "";
         for (int i = 0; i < length; ++i) {
             String text = button[i].getText().toString();
