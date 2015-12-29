@@ -9,7 +9,6 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -39,7 +38,7 @@ import java.text.DecimalFormat;
 
 public class MainActivity extends AppCompatActivity {
 
-    final String TAG = "com.restart.stocklisten";
+    private final String TAG = "com.restart.stocklisten";
     private LinearLayout linearLayout;
     private SharedPreferences sharedPref;
     private String listCompany = "";
@@ -123,7 +122,7 @@ public class MainActivity extends AppCompatActivity {
 
         /**
          * If we have just created our view, but listCompany holds values, then we need to
-         * set them up. We will do this process in a new thread.
+         * set them up.
          */
         if (listCompany.length() != 0) {
             reset(ll, false);
@@ -133,7 +132,8 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * Method gets called when user has opened the MainActivity and companyList contains values.
-     * We will need to set up user's previous watchlist.
+     * We will need to set up user's previous watchlist. reset() may also be called if the
+     * watchlist need to be explicitly refreshed or resorted.
      *
      * @param ll The LinearLayout set up in the onCreate
      */
@@ -327,6 +327,10 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
+    /**
+     * An option in the hamburger menu. Brings a dialog up allowing the user to sort their
+     * watch list using either symbol, price, or change.
+     */
     private void sort() {
         runOnUiThread(new Runnable() {
             @Override
@@ -340,37 +344,75 @@ public class MainActivity extends AppCompatActivity {
                 View convertView = inflater.inflate(R.layout.list, null);
                 alert.setView(convertView);
                 alert.setTitle("List");
+                alert.setMessage("Long press for descending order.");
                 ListView listView = (ListView) convertView.findViewById(R.id.listView1);
+                listView.setPadding(30, 0, 30, 0);
+                ArrayAdapter<String> adapter = new ArrayAdapter<>(MainActivity.this, android.R.layout.simple_list_item_1, names);
+                listView.setAdapter(adapter);
 
                 listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                     @Override
                     public void onItemClick(AdapterView<?> parent, View view,
                                             int position, long id) {
-                        SortManager sortManager = new SortManager(button, buttons);
+                        SortManager sortManager = new SortManager(button, buttons, false);
                         switch (position) {
                             case 0:
-                                button = sortManager.Sortsymbol();
+                                sortManager.sort_symbol_A();
                                 refresh_listCompany(button, buttons);
                                 alert.dismiss();
                                 break;
                             case 1:
-                                button = sortManager.Sortprice();
+                                sortManager.sort_price_A();
+                                refresh_listCompany(button, buttons);
+                                alert.dismiss();
                                 break;
                             case 2:
-                                button = sortManager.Sortchange();
+                                sortManager.sort_change_A();
+                                refresh_listCompany(button, buttons);
+                                alert.dismiss();
                                 break;
                         }
                     }
                 });
 
-                listView.setPadding(80, 40, 40, 40);
-                ArrayAdapter<String> adapter = new ArrayAdapter<>(MainActivity.this, android.R.layout.simple_list_item_1, names);
-                listView.setAdapter(adapter);
+                listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+                    @Override
+                    public boolean onItemLongClick(AdapterView<?> parent, View view,
+                                                   int position, long id) {
+                        SortManager sortManager = new SortManager(button, buttons, true);
+                        switch (position) {
+                            case 0:
+                                sortManager.sort_symbol_D();
+                                refresh_listCompany(button, buttons);
+                                alert.dismiss();
+                                break;
+                            case 1:
+                                sortManager.sort_price_D();
+                                refresh_listCompany(button, buttons);
+                                alert.dismiss();
+                                break;
+                            case 2:
+                                sortManager.sort_change_D();
+                                refresh_listCompany(button, buttons);
+                                alert.dismiss();
+                                break;
+                        }
+                        return true;
+                    }
+                });
                 alert.show();
             }
         });
     }
 
+    /**
+     * Gets called after user calls for a sort. We make sure we create a new listCompany from
+     * the newly created button array returned from the sort class in sort() and save it
+     * in our sharedPref so next time user gets the same watchlist.
+     *
+     * @param button The button array. Newly modified, now passed in so listCompany gets updated
+     * @param length Numbers of buttons filled in the array
+     */
     private void refresh_listCompany(final Button[] button, int length) {
         listCompany = "";
         for (int i = 0; i < length; ++i) {
@@ -379,9 +421,15 @@ public class MainActivity extends AppCompatActivity {
             String result = array[0];
             listCompany += result + ",";
         }
+        sharedPref.edit().putString(getString(R.string.listCompany), listCompany).apply();
         reset(getLinearLayout(), true);
     }
 
+    /**
+     * Get the value of the main linearLayout in the MainActivity. Used for reset.
+     *
+     * @return A pointer to the linearLayout
+     */
     public LinearLayout getLinearLayout() {
         return linearLayout;
     }
