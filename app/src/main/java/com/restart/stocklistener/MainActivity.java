@@ -228,17 +228,18 @@ public class MainActivity extends AppCompatActivity {
 
                     DecimalFormat decimalFormat = new DecimalFormat("0.00");
                     final String symbol = results.getString("symbol");
-                    String bid = "$" + decimalFormat.format(Float.parseFloat(results.getString("Bid")));
-                    String change = results.getString("PercentChange");
-                    String finalchange;
+                    final String bid = "$" + decimalFormat.format(Float.parseFloat(results.getString("Bid")));
+                    final String change = results.getString("PercentChange");
+                    final String sign = change.substring(0, 1);
+                    String finalchange = decimalFormat.format(Float.parseFloat(results.getString("PercentChange").replaceAll("[\\-\\+%]", "")));
                     final Boolean updown;
 
 
-                    if (change.substring(0, 1).equals("-")) {
-                        finalchange = "▼" + change;
+                    if (sign.equals("-")) {
+                        finalchange = "▼" + sign + finalchange + "%";
                         updown = true;
                     } else {
-                        finalchange = "▲" + change;
+                        finalchange = "▲" + sign + finalchange + "%";
                         updown = false;
                     }
 
@@ -300,16 +301,52 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
+     * Gets called after user calls for a sort. We make sure we create a new listCompany from
+     * the newly created button array returned from the sort class in sort() and save it
+     * in our sharedPref so next time user gets the same watchlist.
+     *
+     * @param button The button array. Newly modified, now passed in so listCompany gets updated
+     * @param length Numbers of buttons filled in the array
+     */
+    private void refresh_listCompany(final Button[] button, int length) {
+        listCompany = "";
+        for (int i = 0; i < length; ++i) {
+            String text = button[i].getText().toString();
+            String[] array = text.split("   ");
+            String result = array[0];
+            listCompany += result + ",";
+        }
+        sharedPref.edit().putString(getString(R.string.listCompany), listCompany).apply();
+        reset(getLinearLayout(), true);
+    }
+
+    /**
+     * Get the value of the main linearLayout in the MainActivity. Used for reset.
+     *
+     * @return A pointer to the linearLayout
+     */
+    public LinearLayout getLinearLayout() {
+        return linearLayout;
+    }
+
+    /**
      * Creates the settings drop down menu and refresh button
      */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.action_settings:
+            case R.id.sort_By:
                 sort();
                 return true;
             case R.id.refresh:
-                reset(getLinearLayout(), true);
+                if (buttons > 0) {
+                    reset(getLinearLayout(), true);
+                } else {
+                    Toast.makeText(context, "There is nothing to refresh.", Toast.LENGTH_SHORT).show();
+                }
+                return true;
+            case R.id.delete:
+                delete_ALL();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -354,24 +391,28 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onItemClick(AdapterView<?> parent, View view,
                                             int position, long id) {
-                        SortManager sortManager = new SortManager(button, buttons, false);
-                        switch (position) {
-                            case 0:
-                                sortManager.sort_symbol_A();
-                                refresh_listCompany(button, buttons);
-                                alert.dismiss();
-                                break;
-                            case 1:
-                                sortManager.sort_price_A();
-                                refresh_listCompany(button, buttons);
-                                alert.dismiss();
-                                break;
-                            case 2:
-                                sortManager.sort_change_A();
-                                refresh_listCompany(button, buttons);
-                                alert.dismiss();
-                                break;
+                        if (buttons > 1) {
+                            SortManager sortManager = new SortManager(button, buttons);
+                            switch (position) {
+                                case 0:
+                                    sortManager.sort_symbol_A();
+                                    refresh_listCompany(button, buttons);
+                                    break;
+                                case 1:
+                                    sortManager.sort_price_A();
+                                    refresh_listCompany(button, buttons);
+                                    break;
+                                case 2:
+                                    sortManager.sort_change_A();
+                                    refresh_listCompany(button, buttons);
+                                    break;
+                            }
+                        } else if (buttons == 1) {
+                            Toast.makeText(context, "Sort a list of one?", Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(context, "There is nothing to sort.", Toast.LENGTH_SHORT).show();
                         }
+                        alert.dismiss();
                     }
                 });
 
@@ -379,24 +420,28 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public boolean onItemLongClick(AdapterView<?> parent, View view,
                                                    int position, long id) {
-                        SortManager sortManager = new SortManager(button, buttons, true);
-                        switch (position) {
-                            case 0:
-                                sortManager.sort_symbol_D();
-                                refresh_listCompany(button, buttons);
-                                alert.dismiss();
-                                break;
-                            case 1:
-                                sortManager.sort_price_D();
-                                refresh_listCompany(button, buttons);
-                                alert.dismiss();
-                                break;
-                            case 2:
-                                sortManager.sort_change_D();
-                                refresh_listCompany(button, buttons);
-                                alert.dismiss();
-                                break;
+                        if (buttons > 1) {
+                            SortManager sortManager = new SortManager(button, buttons);
+                            switch (position) {
+                                case 0:
+                                    sortManager.sort_symbol_D();
+                                    refresh_listCompany(button, buttons);
+                                    break;
+                                case 1:
+                                    sortManager.sort_price_D();
+                                    refresh_listCompany(button, buttons);
+                                    break;
+                                case 2:
+                                    sortManager.sort_change_D();
+                                    refresh_listCompany(button, buttons);
+                                    break;
+                            }
+                        } else if (buttons == 1) {
+                            Toast.makeText(context, "Sort a list of one?", Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(context, "There is nothing to sort.", Toast.LENGTH_SHORT).show();
                         }
+                        alert.dismiss();
                         return true;
                     }
                 });
@@ -406,31 +451,37 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Gets called after user calls for a sort. We make sure we create a new listCompany from
-     * the newly created button array returned from the sort class in sort() and save it
-     * in our sharedPref so next time user gets the same watchlist.
-     *
-     * @param button The button array. Newly modified, now passed in so listCompany gets updated
-     * @param length Numbers of buttons filled in the array
+     * Lets the user to delete the watchlist after a dialog warning
      */
-    private void refresh_listCompany(final Button[] button, int length) {
-        listCompany = "";
-        for (int i = 0; i < length; ++i) {
-            String text = button[i].getText().toString();
-            String[] array = text.split("   ");
-            String result = array[0];
-            listCompany += result + ",";
-        }
-        sharedPref.edit().putString(getString(R.string.listCompany), listCompany).apply();
-        reset(getLinearLayout(), true);
-    }
+    private void delete_ALL() {
+        AlertDialog.Builder alert = new AlertDialog.Builder(MainActivity.this);
+        alert.setTitle("Delete Stock");
+        alert.setIcon(R.drawable.ic_launch);
+        alert.setMessage("Action can't be undone. Are you sure?");
 
-    /**
-     * Get the value of the main linearLayout in the MainActivity. Used for reset.
-     *
-     * @return A pointer to the linearLayout
-     */
-    public LinearLayout getLinearLayout() {
-        return linearLayout;
+        alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+                String[] companyArray = listCompany.split(",");
+                int length = companyArray.length;
+
+                if (length > 0) {
+                    for (int i = 0; i < length; ++i) {
+                        button[i].setVisibility(View.GONE);
+                        buttons = 0;
+                    }
+                } else {
+                    Toast.makeText(context, "There is nothing to delete.", Toast.LENGTH_SHORT).show();
+                }
+                listCompany = "";
+                sharedPref.edit().putString(getString(R.string.listCompany), listCompany).apply();
+                buttons = 0;
+            }
+        });
+
+        alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+            }
+        });
+        alert.show();
     }
 }

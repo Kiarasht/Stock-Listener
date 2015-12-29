@@ -7,13 +7,11 @@ public class SortManager {
 
     private final String TAG = "com.restart.stocklisten";
     private Button[] button;
-    private Boolean order;
     private int buttons;
 
-    public SortManager(Button[] button, int buttons, boolean order) {
+    public SortManager(Button[] button, int buttons) {
         this.button = button;
         this.buttons = buttons;
-        this.order = order;
     }
 
     /**
@@ -38,7 +36,7 @@ public class SortManager {
         for (int i = 1; i <= buttons - 1; ++i) {
             Button x = button[i];
             int j = i;
-            String X = x.getText().toString().split("   ")[1];
+
             while (j > 0 && (
                     Float.valueOf(button[j - 1].getText().toString().split("   ")[1].substring(1)) <
                             Float.valueOf(x.getText().toString().split("   ")[1].substring(1)))) {
@@ -53,7 +51,7 @@ public class SortManager {
         for (int i = 1; i <= buttons - 1; ++i) {
             Button x = button[i];
             int j = i;
-            String X = x.getText().toString().split("   ")[1];
+
             while (j > 0 && (
                     Float.valueOf(button[j - 1].getText().toString().split("   ")[2].substring(2).replaceAll("[\\D.]", "")) <
                             Float.valueOf(x.getText().toString().split("   ")[2].substring(2).replaceAll("[\\D.]", "")))) {
@@ -82,7 +80,7 @@ public class SortManager {
         for (int i = 1; i <= buttons - 1; ++i) {
             Button x = button[i];
             int j = i;
-            String X = x.getText().toString().split("   ")[1];
+
             while (j > 0 && (
                     Float.valueOf(button[j - 1].getText().toString().split("   ")[1].substring(1)) >
                             Float.valueOf(x.getText().toString().split("   ")[1].substring(1)))) {
@@ -97,10 +95,10 @@ public class SortManager {
         for (int i = 1; i <= buttons - 1; ++i) {
             Button x = button[i];
             int j = i;
-            String X = x.getText().toString().split("   ")[1];
+
             while (j > 0 && (
-                    Float.valueOf(button[j - 1].getText().toString().split("   ")[2].substring(2).replaceAll("[\\D.]", "")) >
-                            Float.valueOf(x.getText().toString().split("   ")[2].substring(2).replaceAll("[\\D.]", "")))) {
+                    Float.valueOf(button[j - 1].getText().toString().split("   ")[2].substring(2).replaceAll("[\\D]", "")) >
+                            Float.valueOf(x.getText().toString().split("   ")[2].substring(2).replaceAll("[\\D]", "")))) {
                 button[j] = button[j - 1];
                 j = j - 1;
             }
