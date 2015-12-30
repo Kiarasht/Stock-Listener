@@ -35,7 +35,6 @@ import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
 import java.text.DecimalFormat;
-import java.util.Objects;
 
 
 public class MainActivity extends AppCompatActivity {
