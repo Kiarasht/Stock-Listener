@@ -9,6 +9,7 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -34,6 +35,7 @@ import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
 import java.text.DecimalFormat;
+import java.util.Objects;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -262,12 +264,52 @@ public class MainActivity extends AppCompatActivity {
                                 button[buttonvalue].setBackgroundResource(R.drawable.button_custom_bullish);
                             }
 
+                            /**
+                             * When the user clicks on the button, load the webviews from
+                             * StockDataActivity.java
+                             */
                             button[buttonvalue].setOnClickListener(new View.OnClickListener() {
                                 @Override
                                 public void onClick(View v) {
                                     Intent intent = new Intent(context, StockDataActivity.class);
                                     intent.putExtra("symbol", symbol);
                                     startActivity(intent);
+                                }
+                            });
+
+                            /**
+                             * When the user long clicks on the button, ask if they wish to remove
+                             * the button.
+                             */
+                            button[buttonvalue].setOnLongClickListener(new View.OnLongClickListener() {
+                                @Override
+                                public boolean onLongClick(final View v) {
+                                    AlertDialog.Builder alert = new AlertDialog.Builder(MainActivity.this);
+                                    alert.setTitle("Delete Stock");
+                                    alert.setIcon(R.drawable.ic_launch);
+
+                                    alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                                        public void onClick(DialogInterface dialog, int whichButton) {
+                                            Button button = (Button) v;
+                                            final String symbol = button.getText().toString().split("   ")[0];
+                                            v.setVisibility(View.GONE);
+                                            Log.d(TAG, "Before = " + listCompany);
+                                            listCompany = listCompany.replace(symbol.toLowerCase() + ",", "");
+                                            Log.d(TAG, "After = " + listCompany);
+                                            if (!",".equals(listCompany.substring(listCompany.length() - 1))) {
+                                                listCompany += ",";
+                                            }
+                                            sharedPref.edit().putString(getString(R.string.listCompany), listCompany).apply();
+                                            buttons -= 1;
+                                        }
+                                    });
+
+                                    alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                                        public void onClick(DialogInterface dialog, int whichButton) {
+                                        }
+                                    });
+                                    alert.show();
+                                    return true;
                                 }
                             });
                         }
@@ -455,7 +497,7 @@ public class MainActivity extends AppCompatActivity {
      */
     private void delete_ALL() {
         AlertDialog.Builder alert = new AlertDialog.Builder(MainActivity.this);
-        alert.setTitle("Delete Stock");
+        alert.setTitle("Delete All Stock");
         alert.setIcon(R.drawable.ic_launch);
         alert.setMessage("Action can't be undone. Are you sure?");
 
@@ -464,7 +506,7 @@ public class MainActivity extends AppCompatActivity {
                 String[] companyArray = listCompany.split(",");
                 int length = companyArray.length;
 
-                if (length > 0) {
+                if (buttons > 0) {
                     for (int i = 0; i < length; ++i) {
                         button[i].setVisibility(View.GONE);
                         buttons = 0;
