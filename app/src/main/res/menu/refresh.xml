@@ -4,6 +4,6 @@
         android:id="@+id/refresh"
         android:icon="@drawable/ic_autorenew"
         android:orderInCategory="100"
-        android:title="Refresh the watchlist"
-        app:showAsAction="always"/>
+        android:title="@string/refreshhint"
+        app:showAsAction="always" />
 </menu>

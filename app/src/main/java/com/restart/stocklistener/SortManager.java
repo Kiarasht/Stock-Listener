@@ -5,7 +5,7 @@ import android.widget.Button;
 
 public class SortManager {
 
-    private final String TAG = "com.restart.stocklisten";
+    private final String TAG = ".SortManager";
     private Button[] button;
     private int buttons;
 

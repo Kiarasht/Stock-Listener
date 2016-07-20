@@ -12,7 +12,7 @@ import android.webkit.WebViewClient;
 
 public class StockDataActivity extends AppCompatActivity {
 
-    private final String TAG = "com.restart.stocklisten";
+    private final String TAG = ".StockDataActivity";
     private SwipeRefreshLayout swipeLayout;
     private String company;
 
@@ -43,9 +43,8 @@ public class StockDataActivity extends AppCompatActivity {
 
         webView.setWebViewClient(new WebViewController() {
             @Override
-            public void onPageFinished(WebView view, String url)
-            {
-                if(swipeLayout.isRefreshing()){
+            public void onPageFinished(WebView view, String url) {
+                if (swipeLayout.isRefreshing()) {
                     swipeLayout.setRefreshing(false);
                 }
             }

@@ -15,4 +15,7 @@
     <string name="change">change</string>
     <string name="settings">Setting</string>
     <string name="delete">Delete All</string>
+    <string name="refreshhint">Refresh the watchlist</string>
+    <string name="banner_ad_unit_id">ca-app-pub-1850763013639682/5512867839</string>
+
 </resources>
